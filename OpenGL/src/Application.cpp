@@ -1,9 +1,50 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
 
 
-// https://www.youtube.com/watch?v=2pv0Fbo-7ms&list=PLlrATfBNZ98foTJPJ_Ev03o2oq3-GGOS2&index=8
+// https://www.youtube.com/watch?v=MXNMC1YAxVQ&list=PLlrATfBNZ98foTJPJ_Ev03o2oq3-GGOS2&index=9
+
+struct ShaderProgramSource
+{
+    std::string VertexSource;
+    std::string FragmentSource;
+};
+
+static ShaderProgramSource ParseShader(const std::string& filepath)
+{
+    std::ifstream stream(filepath);
+
+    enum class ShaderType
+    {
+        NONE = -1,
+        VERTEX = 0,
+        FRAGMENT = 1,
+    };
+
+    std::string line;
+    std::stringstream ss[2];
+    ShaderType type = ShaderType::NONE;
+    while (getline(stream, line))
+    {
+        if (line.find("#shader") != std::string::npos)
+        {
+            if (line.find("vertex") != std::string::npos)
+                type = ShaderType::VERTEX;
+            else if (line.find("fragment") != std::string::npos)
+                type = ShaderType::FRAGMENT;
+        }
+        else if (type != ShaderType::NONE)
+        {
+            ss[(int)type] << line << '\n';
+        }
+    }
+    return { ss[0].str(), ss[1].str() };
+}
 
 static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
@@ -111,25 +152,8 @@ int main(void)
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    std::string vertexShader =
-        "#version 330 core\n"
-        "\n"
-        "layout(location = 0) in vec4 position;\n"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "    gl_Position = position;\n"
-        "}\n";
-    std::string fragmentShader =
-        "#version 330 core\n"
-        "\n"
-        "layout(location = 0) out vec4 colour;\n"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "    colour = vec4(1.0, 0.0, 0.0, 1.0);\n"
-        "}\n";
-    unsigned int shader = CreateShader(vertexShader, fragmentShader);
+    ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
+    unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
     // remember: shader = program
     // use the program as our current rendering state
     glUseProgram(shader);
