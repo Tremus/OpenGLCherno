@@ -133,6 +133,10 @@ int main(void)
     if (!glfwInit())
         return -1;
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
     if (!window)
@@ -143,6 +147,7 @@ int main(void)
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
+    // Limits frame rate to monitors max frame rate
     glfwSwapInterval(1);
 
     if (glewInit() != GLEW_OK)
@@ -164,18 +169,23 @@ int main(void)
         2, 3, 0,
     };
 
+    unsigned vao;
+    GLCall(glGenVertexArrays(1, &vao));
+    GLCall(glBindVertexArray(vao));
+
     // init our buffer on the GPU
     unsigned int buffer;
     GLCall(glGenBuffers(1, &buffer));
     // set our new buffer as the current buffer
     GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));
     // fill our active buffer on the GPU with some data
-    GLCall(glBufferData(GL_ARRAY_BUFFER, 2 * 6 * sizeof(float), positions, GL_STATIC_DRAW));
+    GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW));
+
     // tell our GPU about the structure of our data (cols & rows)
     GLCall(glEnableVertexAttribArray(0));
+    // links the vertex array to the currently bound vertex buffer
     GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0));
 
-    GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
     unsigned int ibo;
     GLCall(glGenBuffers(1, &ibo));
@@ -196,6 +206,12 @@ int main(void)
     ASSERT(location != -1);
     GLCall(glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f));
 
+    GLCall(glBindVertexArray(0));
+    GLCall(glUseProgram(0));
+    GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+
     float r = 0.0f;
     float increment = 0.05f;
 
@@ -205,7 +221,12 @@ int main(void)
         /* Render here */
         GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
+        GLCall(glUseProgram(shader));
         GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
+        
+        GLCall(glBindVertexArray(vao));
+        GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+
         // When using an index buffer (GL_ELEMENT_ARRAY) you must use
         // glDrawElements instead of glDrawArrays
         GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
