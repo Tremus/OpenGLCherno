@@ -143,13 +143,11 @@ int main(void)
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
-    GLenum err = glewInit();
+    glfwSwapInterval(1);
 
-    if (GLEW_OK != err)
-    {
-        /* Problem: glewInit failed, something is seriously wrong. */
-        fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-    }
+    if (glewInit() != GLEW_OK)
+        std::cout << "Error!" << std::endl;
+
     // Now that glew and glfw have initialised, we can use GLCall
 
     std::cout << glGetString(GL_VERSION) << std::endl;
@@ -186,11 +184,20 @@ int main(void)
     // fill our active buffer on the GPU with some data
     GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned), indices, GL_STATIC_DRAW));
 
+    GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+
     ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
     unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
     // remember: shader = program
     // use the program as our current rendering state
     GLCall(glUseProgram(shader));
+
+    GLCall(int location = glGetUniformLocation(shader, "u_Color"));
+    ASSERT(location != -1);
+    GLCall(glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f));
+
+    float r = 0.0f;
+    float increment = 0.05f;
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -198,9 +205,14 @@ int main(void)
         /* Render here */
         GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
+        GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
         // When using an index buffer (GL_ELEMENT_ARRAY) you must use
         // glDrawElements instead of glDrawArrays
         GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+
+        if (r > 1 || r < 0)
+            increment = -increment;
+        r += increment;
 
         /* Swap front and back buffers */
         GLCall(glfwSwapBuffers(window));
