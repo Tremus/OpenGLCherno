@@ -9,8 +9,9 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
-//https://www.youtube.com/watch?v=bTHqmzjm2UI&list=PLlrATfBNZ98foTJPJ_Ev03o2oq3-GGOS2&index=14
+//https://www.youtube.com/watch?v=bTHqmzjm2UI&list=PLlrATfBNZ98foTJPJ_Ev03o2oq3-GGOS2&index=15
 
 struct ShaderProgramSource
 {
@@ -152,16 +153,12 @@ int main(void)
             2, 3, 0,
         };
 
-        unsigned vao;
-        GLCall(glGenVertexArrays(1, &vao));
-        GLCall(glBindVertexArray(vao));
-
+        VertexArray va;
         VertexBuffer vb(positions, 4 * 2 * sizeof(float));
 
-        // tell our GPU about the structure of our data (cols & rows)
-        GLCall(glEnableVertexAttribArray(0));
-        // links the vertex array to the currently bound vertex buffer
-        GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0));
+        VertexBufferLayout layout;
+        layout.Push<float>(2);
+        va.AddBuffer(vb, layout);
 
         IndexBuffer ib(indices, 6);
 
@@ -196,9 +193,8 @@ int main(void)
             GLCall(glUseProgram(shader));
             GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
         
-            GLCall(glBindVertexArray(vao));
+            va.Bind();
             ib.Bind();
-            //GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
 
             // When using an index buffer (GL_ELEMENT_ARRAY) you must use
             // glDrawElements instead of glDrawArrays
