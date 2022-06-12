@@ -90,11 +90,13 @@ unsigned int Shader::CreateShader(const std::string& vertexShader, const std::st
     // from the docs:
     // "A program object is an object to which shader objects can be attached."
     GLCall(unsigned int program = glCreateProgram());
+
     unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
     unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
 
     GLCall(glAttachShader(program, vs));
     GLCall(glAttachShader(program, fs));
+
     // must be called after setting attachments.
     // after 'linking', the attached shader becomes
     // an executable used by the program.
@@ -118,11 +120,15 @@ void Shader::Unbind() const
 }
 
 // Set uniforms
+void Shader::SetUniform1i(const std::string& name, int value)
+{
+    GLCall(glUniform1i(GetUniformLocation(name), value));
+}
 void Shader::SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3)
 {
     GLCall(glUniform4f(GetUniformLocation(name), v0, v1, v2, v3));
 }
-unsigned int Shader::GetUniformLocation(const std::string& name)
+int Shader::GetUniformLocation(const std::string& name)
 {
     if (m_UniformLocationCache.find(name) != m_UniformLocationCache.end())
         return m_UniformLocationCache[name];
