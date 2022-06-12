@@ -8,11 +8,12 @@
 
 #include "Renderer.h"
 #include "VertexBuffer.h"
+#include "VertexBufferLayout.h"
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
 
-//https://www.youtube.com/watch?v=gDtHL6hy9R8&list=PLlrATfBNZ98foTJPJ_Ev03o2oq3-GGOS2&index=15
+//https://www.youtube.com/watch?v=n4k7ANAFsIQ&list=PLlrATfBNZ98foTJPJ_Ev03o2oq3-GGOS2&index=17
 
 
 int main(void)
@@ -78,6 +79,8 @@ int main(void)
         ib.Unbind();
         shader.Unbind();
 
+        Renderer renderer;
+
         float r = 0.0f;
         float increment = 0.05f;
 
@@ -85,13 +88,12 @@ int main(void)
         while (!glfwWindowShouldClose(window))
         {
             /* Render here */
-            GLCall(glClear(GL_COLOR_BUFFER_BIT));
+            renderer.Clear();
 
             shader.Bind();
             shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
-        
-            va.Bind();
-            ib.Bind();
+
+            renderer.Draw(va, ib, shader);
 
             // When using an index buffer (GL_ELEMENT_ARRAY) you must use
             // glDrawElements instead of glDrawArrays
@@ -103,7 +105,6 @@ int main(void)
 
             /* Swap front and back buffers */
             GLCall(glfwSwapBuffers(window));
-
             /* Poll for and process events */
             GLCall(glfwPollEvents());
         }
