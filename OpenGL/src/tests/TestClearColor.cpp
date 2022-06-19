@@ -12,15 +12,15 @@ test::TestClearColor::~TestClearColor()
 {
 }
 
-void test::TestClearColor::onUpdate(float deltaTime) {}
+void test::TestClearColor::OnUpdate(float deltaTime) {}
 
-void test::TestClearColor::onRender()
+void test::TestClearColor::OnRender()
 {
 	GLCall(glClearColor(m_ClearColour[0], m_ClearColour[1], m_ClearColour[2], m_ClearColour[3]));
 	GLCall(glClear(GL_COLOR_BUFFER_BIT));
 }
 
-void test::TestClearColor::onImGuiRender()
+void test::TestClearColor::OnImGuiRender()
 {
 	ImGui::ColorPicker4("Clear Color", m_ClearColour);
 }

@@ -117,19 +117,32 @@ int main(void)
         float increment = 0.05f;
         */
 
-        test::TestClearColor testClearColor;
+        test::Test* currentTest = nullptr;
+        test::TestMenu* testMenu = new test::TestMenu(currentTest);
+        currentTest = testMenu;
+        testMenu->RegisterTest<test::TestClearColor>("Clear color");
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
         {
             /* Render here */
+            GLCall(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
             renderer.Clear();
 
-            testClearColor.onUpdate(0.0f);
-            testClearColor.onRender();
-
             ImGui_ImplGlfwGL3_NewFrame();
-            testClearColor.onImGuiRender();
+            if (currentTest)
+            {
+                currentTest->OnUpdate(0.0f);
+                currentTest->OnRender();
+                ImGui::Begin("Test");
+                if (currentTest != testMenu && ImGui::Button("<-"))
+                {
+                    delete currentTest;
+                    currentTest = testMenu;
+                }
+                currentTest->OnImGuiRender();
+                ImGui::End();
+            }
 
             /*
             {
@@ -173,6 +186,9 @@ int main(void)
             /* Poll for and process events */
             GLCall(glfwPollEvents());
         }
+        delete currentTest;
+        if (currentTest != testMenu)
+            delete testMenu;
     }
 
     ImGui_ImplGlfwGL3_Shutdown();
